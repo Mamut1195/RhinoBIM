@@ -11,9 +11,9 @@ using System.Collections.Generic;
 
 namespace RhinoBIM
 {
-    public class GridX : Command
+    public class GridXY : Command
     {
-        public GridX()
+        public GridXY()
         {
             // Rhino only creates one instance of each command class defined in a
             // plug-in, so it is safe to store a refence in a static property.
@@ -21,17 +21,20 @@ namespace RhinoBIM
         }
 
         ///<summary>The only instance of this command.</summary>
-        public static GridX Instance { get; private set; }
+        public static GridXY Instance { get; private set; }
 
         ///<returns>The command name as it appears on the Rhino command line.</returns>
-        public override string EnglishName => "GridX";
+        public override string EnglishName => "GridXY";
 
         
         protected override Result RunCommand(RhinoDoc doc, RunMode mode)
         {
             // TODO: start here modifying the behaviour of your command.
             // ---
-            RhinoApp.WriteLine("The {0} command will create a the grides in x direction", EnglishName);
+            RhinoApp.WriteLine("The {0} command will create a the grides in x and y direction", EnglishName);
+
+            //Layer Creation
+            RhinoApp.WriteLine("Layer Creation");
 
             // Solicitar al usuario el nombre del nuevo layer
             GetString getLayerName = new GetString();
@@ -65,7 +68,9 @@ namespace RhinoBIM
             }
 
             RhinoApp.WriteLine($"New layer '{layerName}' created successfully.");
-      
+
+            //Grid-X Creation
+            RhinoApp.WriteLine($"Grid - X Creation.");
 
             using (GetNumber lenght = new GetNumber())
             using (GetNumber spaces = new GetNumber())
@@ -107,12 +112,64 @@ namespace RhinoBIM
 
                 }
 
+                RhinoApp.WriteLine($"Grid - X has been created.");
 
             }
 
+            //Grid-Y Creation
+            RhinoApp.WriteLine($"Grid - Y Creation.");
+
+            using (GetNumber lenght_Y = new GetNumber())
+            using (GetNumber spaces_Y = new GetNumber())
+            using (GetNumber number_of_lines_Y = new GetNumber())
+
+            {
+                lenght_Y.SetCommandPrompt("Input length of the lines: ");
+                lenght_Y.AcceptNumber(false, false);
+                lenght_Y.Get();
+
+                spaces_Y.SetCommandPrompt("Input spacing between lines: ");
+                spaces_Y.AcceptNumber(false, false);
+                spaces_Y.Get();
+
+                number_of_lines_Y.SetCommandPrompt("Input number of lines: ");
+                number_of_lines_Y.AcceptNumber(false, false);
+                number_of_lines_Y.Get();
+
+                if (lenght_Y.CommandResult() == Result.Success && spaces_Y.CommandResult() == Result.Success && number_of_lines_Y.CommandResult() == Result.Success)
+                {
+                    double lineLength = lenght_Y.Number();
+                    double spacing = spaces_Y.Number();
+                    int numberOfLines = (int)number_of_lines_Y.Number();
+
+                    Line Linea1 = new Line(0, 0, 0, 0, lineLength, 0);
 
 
-                return Result.Success;
+                    doc.Objects.AddLine(Linea1);
+
+                    for (int i = 1; i < numberOfLines; i++)
+                    {
+                        double newX = i * spacing;
+                        Line newLine = new Line(newX,0, 0, newX, lineLength, 0);
+                        doc.Objects.AddLine(newLine);
+                    }
+
+                    doc.Views.Redraw();
+
+
+                }
+
+                RhinoApp.WriteLine($"Grid - Y has been created.");
+
+            }
+
+            
+
+
+
+
+
+            return Result.Success;
         }
     }
 }
